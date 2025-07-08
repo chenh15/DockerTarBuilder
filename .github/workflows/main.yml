@@ -25,11 +25,12 @@ jobs:
           IFS=',' read -r -a image_array <<< "$images"
           for image in "${image_array[@]}"; do
             docker pull "${image}" --platform "linux/amd64"
-            docker system prune -af  # 关键：拉取后立即清理
             image_name="${image//\//_}"
             image_name="${image_name//:/_}"
             docker save "${image}" | gzip > "${image_name}-amd64.tar.gz"
+            docker rmi "${image}"  # 保存后立即删除当前镜像
           done
+          docker system prune -af  # 最终清理残余数据
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
